@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Envelope>
+    <Header>
+        <Timestamp>2025-07-21T12:00:00Z</Timestamp>
+    </Header>
+    <Body>
+        VGhpcyBpcyBhIHRlc3QgZmlsZSBjb250ZW50Lg==
+    </Body>
+    <Filename>example.txt</Filename>
+</Envelope>
