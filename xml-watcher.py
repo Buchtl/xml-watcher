@@ -100,11 +100,11 @@ def start_service(src_dir, dest_dir):
 
     event_handler = XMLHandler(src_dir, dest_dir)
 
-    onstart(src_dir, event_handler)
-
     observer = Observer()
     observer.schedule(event_handler, src_dir, recursive=False)
     observer.start()
+
+    onstart(src_dir, event_handler)
 
     try:
         while True:
