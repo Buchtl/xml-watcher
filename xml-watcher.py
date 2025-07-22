@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 import base64
 import argparse
@@ -6,33 +7,62 @@ import xml.etree.ElementTree as ET
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+TARGET_TYPE_VALUE = "target_value"  # Change this to your expected <type> content
+
 class XMLHandler(FileSystemEventHandler):
     def __init__(self, src_dir, dest_dir):
         self.src_dir = src_dir
         self.dest_dir = dest_dir
 
     def on_created(self, event):
-        if not event.is_directory and event.src_path.endswith('.xml'):
+        print(f"[INFO] New Event: {event.src_path}")
+        if not event.is_directory:
+          if event.src_path.endswith('.txt'):
             try:
                 print(f"[INFO] New file detected: {event.src_path}")
-                self.process_file(event.src_path)
+                self.process_txt(event.src_path)
             except Exception as e:
                 print(f"[ERROR] Failed to process {event.src_path}: {e}")
+          if event.src_path.endswith('.xml'):
+            try:
+                print(f"[INFO] New file detected: {event.src_path}")
+                self.process_xml(event.src_path)
+            except Exception as e:
+                print(f"[ERROR] Failed to process {event.src_path}: {e}")
+    
+    def process_txt(self, file_path):
+        base_filename = os.path.basename(file_path)
+        dest_file = os.path.join(self.dest_dir, base_filename)
+        print(f"Move {file_path} to {dest_file}")
+        shutil.move(file_path, dest_file)
 
-    def process_file(self, file_path):
+    def process_xml(self, file_path):
         tree = ET.parse(file_path)
         root = tree.getroot()
 
-        filename_elem = root.find(".//Filename")
+        # Check <type> tag existence and content
+        type_elem = root.find(".//type")
+        if type_elem is None:
+            print(f"[INFO] Skipping file (missing <type>): {file_path}")
+            return
+        if type_elem.text is None or type_elem.text.strip() != TARGET_TYPE_VALUE:
+            print(f"[INFO] Skipping file (<type> != '{TARGET_TYPE_VALUE}'): {file_path}")
+            return
+
+        # Check <Body> existence and non-empty
         body_elem = root.find(".//Body")
+        if body_elem is None or not body_elem.text or not body_elem.text.strip():
+            print(f"[INFO] Skipping file (<Body> missing or empty): {file_path}")
+            return
 
-        if filename_elem is None or body_elem is None:
-            raise ValueError("Missing <Filename> or <Body> in XML")
-
-        filename = filename_elem.text.strip()
         base64_data = body_elem.text.strip()
 
-        output_path = os.path.join(self.dest_dir, filename)
+        # Create output filename by replacing the .xml extension with .part
+        base_filename = os.path.basename(file_path)
+        name_without_ext = os.path.splitext(base_filename)[0]
+        output_filename = name_without_ext + ".part"
+        output_path = os.path.join(self.dest_dir, output_filename)
+
         decoded_data = base64.b64decode(base64_data)
 
         with open(output_path, 'wb') as out_file:
@@ -63,7 +93,7 @@ def start_service(src_dir, dest_dir):
     observer.join()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Watch for XML files, decode <Body> content, write to <Filename>")
+    parser = argparse.ArgumentParser(description="Watch XML files, decode <Body> if <type> matches")
     parser.add_argument("--src", default="/data/input", help="Source directory to monitor for XML files")
     parser.add_argument("--dest", default="/data/input", help="Destination directory to write decoded files")
     args = parser.parse_args()
