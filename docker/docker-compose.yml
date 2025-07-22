@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  xml-watcher:
+    build: .
+    user: 1000:1000
+    volumes:
+      - ./input/:/input:rw
+      - ./output/:/output:rw
+    restart: always
