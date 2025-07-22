@@ -15,20 +15,26 @@ class XMLHandler(FileSystemEventHandler):
         self.dest_dir = dest_dir
 
     def on_created(self, event):
+        if event.is_directory:
+            return
+
         print(f"[INFO] New Event: {event.src_path}")
-        if not event.is_directory:
-          if event.src_path.endswith('.txt'):
-            try:
-                print(f"[INFO] New file detected: {event.src_path}")
-                self.process_txt(event.src_path)
-            except Exception as e:
-                print(f"[ERROR] Failed to process {event.src_path}: {e}")
-          if event.src_path.endswith('.xml'):
-            try:
-                print(f"[INFO] New file detected: {event.src_path}")
-                self.process_xml(event.src_path)
-            except Exception as e:
-                print(f"[ERROR] Failed to process {event.src_path}: {e}")
+        file_path = event.src_path
+
+        handlers = {
+            '.txt': self.process_txt,
+            '.xml': self.process_xml,
+        }
+
+        for ext, handler in handlers.items():
+            if file_path.endswith(ext):
+                try:
+                    print(f"[INFO] New file detected: {file_path}")
+                    handler(file_path)
+                except Exception as e:
+                    print(f"[ERROR] Failed to process {file_path}: {e}")
+                break  # Stop after first match
+
     
     def process_txt(self, file_path):
         base_filename = os.path.basename(file_path)
