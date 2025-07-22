@@ -78,6 +78,19 @@ class XMLHandler(FileSystemEventHandler):
         os.remove(file_path)
         print(f"[INFO] Removed processed XML: {file_path}")
 
+def onstart(src_dir, event_handler):
+    for filename in os.listdir(src_dir):
+        file_path = os.path.join(src_dir, filename)
+        if os.path.isfile(file_path) and (filename.endswith('.xml') or filename.endswith('.txt')):
+            print(f"[INFO] Found existing file at startup: {file_path}")
+            try:
+                if filename.endswith('.xml'):
+                    event_handler.process_xml(file_path)
+                elif filename.endswith('.txt'):
+                    event_handler.process_txt(file_path)
+            except Exception as e:
+                print(f"[ERROR] Failed to process {file_path} on startup: {e}")
+
 def start_service(src_dir, dest_dir):
     print(f"[INFO] Watching for XML files in: {src_dir}")
     print(f"[INFO] Decoded files will be saved to: {dest_dir}")
@@ -86,6 +99,9 @@ def start_service(src_dir, dest_dir):
     os.makedirs(dest_dir, exist_ok=True)
 
     event_handler = XMLHandler(src_dir, dest_dir)
+
+    onstart(src_dir, event_handler)
+
     observer = Observer()
     observer.schedule(event_handler, src_dir, recursive=False)
     observer.start()
