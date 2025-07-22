@@ -1,7 +1,6 @@
 
 #!/bin/bash
-IP=192.168.2.72
-#$1
+IP=$1
 STACK_NAME=xml-watcher
 
 docker swarm init --advertise-addr $IP
