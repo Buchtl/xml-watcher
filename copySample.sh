@@ -1,0 +1,1 @@
+cp sample.xml ./input

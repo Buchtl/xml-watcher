@@ -1,13 +1,14 @@
 import os
 import shutil
 import time
+import itertools
 import base64
 import argparse
 import xml.etree.ElementTree as ET
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-TARGET_TYPE_VALUE = "target_value"  # Change this to your expected <type> content
+TARGET_TYPE_VALUE = "type_test"  # Change this to your expected <type> content
 
 class XMLHandler(FileSystemEventHandler):
     def __init__(self, src_dir, dest_dir):
@@ -46,13 +47,13 @@ class XMLHandler(FileSystemEventHandler):
         tree = ET.parse(file_path)
         root = tree.getroot()
 
-        # Check <type> tag existence and content
-        type_elem = root.find(".//type")
+        # Check <Type> tag existence and content
+        type_elem = root.find(".//Type")
         if type_elem is None:
-            print(f"[INFO] Skipping file (missing <type>): {file_path}")
+            print(f"[INFO] Skipping file (missing <Type>): {file_path}")
             return
         if type_elem.text is None or type_elem.text.strip() != TARGET_TYPE_VALUE:
-            print(f"[INFO] Skipping file (<type> != '{TARGET_TYPE_VALUE}'): {file_path}")
+            print(f"[INFO] Skipping file (<Type> != '{TARGET_TYPE_VALUE}'): {file_path}")
             return
 
         # Check <Body> existence and non-empty
@@ -72,7 +73,8 @@ class XMLHandler(FileSystemEventHandler):
         decoded_data = base64.b64decode(base64_data)
 
         with open(output_path, 'wb') as out_file:
-            out_file.write(decoded_data)
+            output = stripText(decoded_data.decode('utf-8', errors='replace')).encode('utf-8')
+            out_file.write(output)
             print(f"[INFO] Decoded file written to: {output_path}")
 
         os.remove(file_path)
@@ -90,6 +92,10 @@ def onstart(src_dir, event_handler):
                     event_handler.process_txt(file_path)
             except Exception as e:
                 print(f"[ERROR] Failed to process {file_path} on startup: {e}")
+
+def stripText(input: str):
+    cleaned_lines = list(itertools.dropwhile(lambda x: not x.strip(), input.splitlines()))
+    return "\n".join(cleaned_lines)
 
 def start_service(src_dir, dest_dir):
     print(f"[INFO] Watching for XML files in: {src_dir}")

@@ -3,8 +3,9 @@
     <Header>
         <Timestamp>2025-07-21T12:00:00Z</Timestamp>
     </Header>
+    <Type>type_test</Type>
     <Body>
-        VGhpcyBpcyBhIHRlc3QgZmlsZSBjb250ZW50Lg==
+        CmFnYmNkZWYKCmFiY2RlZmcK
     </Body>
     <Filename>example.txt</Filename>
 </Envelope>
