@@ -15,6 +15,7 @@ class XMLHandler(FileSystemEventHandler):
     def __init__(self, src_dir, dest_dir):
         self.src_dir = src_dir
         self.dest_dir = dest_dir
+        self.dest_temp_dir = os.path.join(dest_dir, "temp")
 
     def on_created(self, event):
         if event.is_directory:
@@ -41,10 +42,9 @@ class XMLHandler(FileSystemEventHandler):
         base_filename = os.path.basename(file_path)
         dest_file = os.path.join(self.dest_dir, base_filename)
         print(f"Move {file_path} to {dest_file}")
-        shutil.move(file_path, dest_file)
+        os.rename(file_path, dest_file)
 
     def process_xml(self, file_path):
-
         base_filename = os.path.basename(file_path)
         name_without_ext = os.path.splitext(base_filename)[0]
         output_base_filename = name_without_ext + ".part"
@@ -61,24 +61,33 @@ class XMLHandler(FileSystemEventHandler):
 
             if type in ["text/plain"] or "mytext" in type:
                 print(f"[INFO] writing type {type} as text")
+                output_filename = f"{output_base_filename}_{filename}.data"
                 with open(
-                    os.path.join(self.dest_dir, output_base_filename + ".txt"), "wb"
+                    os.path.join(self.dest_temp_dir, output_base_filename + ".txt"),
+                    "wb",
                 ) as f:
                     output = stripText(
                         decoded_data.decode("utf-8", errors="replace")
                     ).encode("utf-8")
                     f.write(output)
                     print(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
+                    os.rename(
+                        os.path.abspath(f.name),
+                        os.path.join(self.dest_dir, output_filename),
+                    )
             else:
                 print(f"[INFO] writing type {type} as binary")
+                output_filename = f"{output_base_filename}_{filename}.data"
                 with open(
-                    os.path.join(
-                        self.dest_dir, f"{output_base_filename}_{filename}.data"
-                    ),
+                    os.path.join(self.dest_temp_dir, output_filename),
                     "wb",
                 ) as f:
                     f.write(decoded_data)
                     print(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
+                    os.rename(
+                        os.path.abspath(f.name),
+                        os.path.join(self.dest_dir, output_filename),
+                    )
 
         os.remove(file_path)
         print(f"[INFO] Removed processed XML: {file_path}")
@@ -113,6 +122,7 @@ def start_service(src_dir, dest_dir):
 
     os.makedirs(src_dir, exist_ok=True)
     os.makedirs(dest_dir, exist_ok=True)
+    os.makedirs(os.path.join(dest_dir, "temp"), exist_ok=True)
 
     event_handler = XMLHandler(src_dir, dest_dir)
 
