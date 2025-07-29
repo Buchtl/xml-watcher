@@ -21,7 +21,5 @@ class TextXmlWatcher(unittest.TestCase):
       self.assertEqual(actual_parts[0].body, "This is a test.")
       self.assertEqual(actual_parts[1].body, "This is a test too.")
 
-
-
 if __name__ == "__main__":
     unittest.main()
