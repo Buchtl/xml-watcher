@@ -5,6 +5,7 @@ import itertools
 import base64
 import argparse
 import xml.etree.ElementTree as ET
+from typing import List
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -92,6 +93,9 @@ class XMLHandler(FileSystemEventHandler):
         os.remove(file_path)
         print(f"[INFO] Removed processed XML: {file_path}")
 
+def find_parts(file_path: str) -> List[ET.Element]:
+    root = ET.parse(file_path).getroot()
+    return root.findall("Part")
 
 def onstart(src_dir, event_handler):
     for filename in os.listdir(src_dir):
