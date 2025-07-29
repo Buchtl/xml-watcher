@@ -9,4 +9,4 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "xml-watcher.py", "--src", "/input", "--dest", "/output"]
+CMD ["python", "xml_watcher.py", "--src", "/input", "--dest", "/output"]
