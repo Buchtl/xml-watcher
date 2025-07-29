@@ -6,4 +6,4 @@ class Part:
     id: str
     filename: str
     type: str
-    body: str
+    body: bytes

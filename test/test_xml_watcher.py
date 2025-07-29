@@ -1,5 +1,6 @@
 # test_math_utils.py
 import unittest
+import base64
 
 from pathlib import Path
 
@@ -18,8 +19,8 @@ class TextXmlWatcher(unittest.TestCase):
 
     def test_get_parts_content(self):
       actual_parts = xml_watcher.find_parts(FIXTURE_DIR / "sample.xml")
-      self.assertEqual(actual_parts[0].body, "This is a test.")
-      self.assertEqual(actual_parts[1].body, "This is a test too.")
+      self.assertEqual(actual_parts[0].body, "This is a test.".encode("utf-8"))
+      self.assertEqual(actual_parts[1].body, "This is a test too.".encode("utf-8"))
 
 if __name__ == "__main__":
     unittest.main()
