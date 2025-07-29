@@ -7,11 +7,11 @@
     <Part id="1">
       <Filename>this_is_a_test.txt</Filename>
       <Type>text/plain</Type>
-      <Body>CmFnYmNkZWYKCmFiY2RlZmcK</Body>
+      <Body>VGhpcyBpcyBhIHRlc3Qu</Body>
     </Part>
     <Part id="2">
       <Filename>this_is_a_test_too.txt</Filename>
       <Type>text/plain</Type>
-      <Body>VGhpcyBpcyBhIHRlc3QgdG9vLgo=</Body>
+      <Body>VGhpcyBpcyBhIHRlc3QgdG9vLg==</Body>
     </Part>
 </Envelope>

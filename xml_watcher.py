@@ -1,5 +1,4 @@
 import os
-import shutil
 import time
 import itertools
 import base64
@@ -8,8 +7,17 @@ import xml.etree.ElementTree as ET
 from typing import List
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from dataclasses import dataclass
 
 TARGET_TYPE_VALUE = "type_test"  # Change this to your expected <type> content
+
+
+@dataclass
+class Part:
+    id: str
+    filename: str
+    type: str
+    body: str
 
 
 class XMLHandler(FileSystemEventHandler):
@@ -93,9 +101,21 @@ class XMLHandler(FileSystemEventHandler):
         os.remove(file_path)
         print(f"[INFO] Removed processed XML: {file_path}")
 
-def find_parts(file_path: str) -> List[ET.Element]:
+
+def find_parts(file_path: str) -> List[Part]:
     root = ET.parse(file_path).getroot()
-    return root.findall("Part")
+    parts = []
+    for part_elem in root.iter("Part"):
+        decodedBody = base64.b64decode(part_elem.findtext("Body")).decode("utf-8")
+        part = Part(
+            id=part_elem.get("id"),
+            filename=part_elem.findtext("Filename"),
+            type=part_elem.findtext("Type"),
+            body=decodedBody,
+        )
+        parts.append(part)
+    return parts
+
 
 def onstart(src_dir, event_handler):
     for filename in os.listdir(src_dir):
