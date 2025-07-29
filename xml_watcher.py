@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 import itertools
 import base64
 import argparse
@@ -40,7 +41,7 @@ class XMLHandler(FileSystemEventHandler):
         base_filename = os.path.basename(file_path)
         dest_file = os.path.join(self.dest_dir, base_filename)
         print(f"Move {file_path} to {dest_file}")
-        os.rename(file_path, dest_file)
+        shutil.move(file_path, dest_file)
 
     def process_xml(self, file_path):
         base_filename = os.path.basename(file_path)
@@ -69,7 +70,7 @@ class XMLHandler(FileSystemEventHandler):
                     ).encode("utf-8")
                     f.write(output)
                     print(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
-                    os.rename(
+                    shutil.move(
                         os.path.abspath(f.name),
                         os.path.join(self.dest_dir, output_filename),
                     )
@@ -82,7 +83,7 @@ class XMLHandler(FileSystemEventHandler):
                 ) as f:
                     f.write(decoded_data)
                     print(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
-                    os.rename(
+                    shutil.move(
                         os.path.abspath(f.name),
                         os.path.join(self.dest_dir, output_filename),
                     )
