@@ -3,3 +3,4 @@ dist/
 example.txt
 xml-watcher
 xml-watcher.spec
+__pycache__/
