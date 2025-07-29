@@ -1,9 +1,6 @@
 # test_math_utils.py
 import unittest
-import base64
-
 from pathlib import Path
-
 import xml_utils
 
 BASE_DIR = Path(__file__).parent

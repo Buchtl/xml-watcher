@@ -2,8 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY xml-watcher.py .
+COPY xml_watcher.py .
+COPY xml_utils.py .
+COPY xml_models.py .
+COPY requirements.txt .
 
-RUN pip install watchdog
+RUN pip install -r requirements.txt
 
 CMD ["python", "xml-watcher.py", "--src", "/input", "--dest", "/output"]
