@@ -2,10 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY xml_watcher.py .
-COPY xml_utils.py .
-COPY xml_models.py .
-COPY requirements.txt .
+COPY xml_watcher.py \
+  xml_utils.py \
+  xml_models.py \
+  requirements.txt \
+  utils.py \
+  /app/
 
 RUN pip install -r requirements.txt
 

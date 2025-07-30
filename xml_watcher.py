@@ -1,16 +1,22 @@
 import os
 import time
 import shutil
-import itertools
 import base64
 import argparse
 import xml.etree.ElementTree as ET
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+import utils
+import logging
+from logging.handlers import TimedRotatingFileHandler
+import pathlib
+import sys
 
 TARGET_TYPE_VALUE = "type_test"  # Change this to your expected <type> content
 
+
 class XMLHandler(FileSystemEventHandler):
+    logger = logging.getLogger("xml_watcher")
     def __init__(self, src_dir, dest_dir):
         self.src_dir = src_dir
         self.dest_dir = dest_dir
@@ -20,7 +26,7 @@ class XMLHandler(FileSystemEventHandler):
         if event.is_directory:
             return
 
-        print(f"[INFO] New Event: {event.src_path}")
+        self.logger.info(f"New Event: {event.src_path}")
         file_path = event.src_path
 
         handlers = {
@@ -31,16 +37,16 @@ class XMLHandler(FileSystemEventHandler):
         for ext, handler in handlers.items():
             if file_path.endswith(ext):
                 try:
-                    print(f"[INFO] New file detected: {file_path}")
+                    self.logger.info(f"New file detected: {file_path}")
                     handler(file_path)
                 except Exception as e:
-                    print(f"[ERROR] Failed to process {file_path}: {e}")
+                    self.logger.info(f"Failed to process {file_path}: {e}")
                 break  # Stop after first match
 
     def process_txt(self, file_path):
         base_filename = os.path.basename(file_path)
         dest_file = os.path.join(self.dest_dir, base_filename)
-        print(f"Move {file_path} to {dest_file}")
+        self.logger.info(f"Move {file_path} to {dest_file}")
         shutil.move(file_path, dest_file)
 
     def process_xml(self, file_path):
@@ -59,68 +65,64 @@ class XMLHandler(FileSystemEventHandler):
             decoded_data = base64.b64decode(body)
 
             if type in ["text/plain"] or "mytext" in type:
-                print(f"[INFO] writing type {type} as text")
+                self.logger.info(f"writing type {type} as text")
                 output_filename = f"{output_base_filename}_{filename}.data"
                 with open(
                     os.path.join(self.dest_temp_dir, output_base_filename + ".txt"),
                     "wb",
                 ) as f:
-                    output = stripText(
+                    output = utils.stripText(
                         decoded_data.decode("utf-8", errors="replace")
                     ).encode("utf-8")
                     f.write(output)
-                    print(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
+                    self.logger.info(f"Decoded file written to: {os.path.abspath(f.name)}")
                     shutil.move(
                         os.path.abspath(f.name),
                         os.path.join(self.dest_dir, output_filename),
                     )
             else:
-                print(f"[INFO] writing type {type} as binary")
+                self.logger.info(f"[INFO] writing type {type} as binary")
                 output_filename = f"{output_base_filename}_{filename}.data"
                 with open(
                     os.path.join(self.dest_temp_dir, output_filename),
                     "wb",
                 ) as f:
                     f.write(decoded_data)
-                    print(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
+                    self.logger.info(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
                     shutil.move(
                         os.path.abspath(f.name),
                         os.path.join(self.dest_dir, output_filename),
                     )
 
         os.remove(file_path)
-        print(f"[INFO] Removed processed XML: {file_path}")
+        self.logger.info(f"Removed processed XML: {file_path}")
+
 
 def onstart(src_dir, event_handler):
+    logger = logging.getLogger("started xml_watcher")
     for filename in os.listdir(src_dir):
         file_path = os.path.join(src_dir, filename)
         if os.path.isfile(file_path) and (
             filename.endswith(".xml") or filename.endswith(".txt")
         ):
-            print(f"[INFO] Found existing file at startup: {file_path}")
+            logger.info(f"Found existing file at startup: {file_path}")
             try:
                 if filename.endswith(".xml"):
                     event_handler.process_xml(file_path)
                 elif filename.endswith(".txt"):
                     event_handler.process_txt(file_path)
             except Exception as e:
-                print(f"[ERROR] Failed to process {file_path} on startup: {e}")
+                logger.error(f"Failed to process {file_path} on startup: {e}")
 
 
-def stripText(input: str):
-    cleaned_lines = list(
-        itertools.dropwhile(lambda x: not x.strip(), input.splitlines())
-    )
-    return "\n".join(cleaned_lines)
+def start_service(src_dir: pathlib.Path, dest_dir: pathlib.Path):
+    logger = logging.getLogger("xml_watcher")
+    logger.info(f"Watching for XML files in: {src_dir}")
+    logger.info(f"Decoded files will be saved to: {dest_dir}")
 
-
-def start_service(src_dir, dest_dir):
-    print(f"[INFO] Watching for XML files in: {src_dir}")
-    print(f"[INFO] Decoded files will be saved to: {dest_dir}")
-
-    os.makedirs(src_dir, exist_ok=True)
-    os.makedirs(dest_dir, exist_ok=True)
-    os.makedirs(os.path.join(dest_dir, "temp"), exist_ok=True)
+    os.makedirs(src_dir.as_posix(), exist_ok=True)
+    os.makedirs(dest_dir.as_posix(), exist_ok=True)
+    os.makedirs((dest_dir / "temp").as_posix(), exist_ok=True)
 
     event_handler = XMLHandler(src_dir, dest_dir)
 
@@ -134,9 +136,35 @@ def start_service(src_dir, dest_dir):
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("[INFO] Stopping service...")
+        logger.info("Stopping service...")
         observer.stop()
     observer.join()
+
+
+def config_logging(logDir: pathlib.Path):
+    os.makedirs(logDir.as_posix(), exist_ok=True)
+    # Log Format
+    log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    formatter = logging.Formatter(log_format)
+    # Logger setup
+    logger = logging.getLogger("xml_watcher")
+    logger.setLevel(logging.DEBUG)
+    # File handler: one file per day, keep 7 days
+    file_handler = TimedRotatingFileHandler(
+        filename=(logDir / "app.log").as_posix(),
+        when="midnight",
+        interval=1,
+        backupCount=7,
+        encoding="utf-8"
+    )
+    file_handler.setFormatter(formatter)
+    # Stdout handler
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter)
+    # Add handlers
+    logger.addHandler(file_handler)
+    logger.addHandler(stdout_handler)
+    logger.info("Start logging...")
 
 
 if __name__ == "__main__":
@@ -153,4 +181,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    start_service(args.src, args.dest)
+    src_dir = pathlib.Path(args.src)
+    dst_dir = pathlib.Path(args.dest)
+
+    config_logging(src_dir / "logs")
+
+    start_service(src_dir, dst_dir)
