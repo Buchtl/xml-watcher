@@ -17,6 +17,7 @@ TARGET_TYPE_VALUE = "type_test"  # Change this to your expected <type> content
 
 class XMLHandler(FileSystemEventHandler):
     logger = logging.getLogger("xml_watcher")
+
     def __init__(self, src_dir, dest_dir):
         self.src_dir = src_dir
         self.dest_dir = dest_dir
@@ -75,7 +76,9 @@ class XMLHandler(FileSystemEventHandler):
                         decoded_data.decode("utf-8", errors="replace")
                     ).encode("utf-8")
                     f.write(output)
-                    self.logger.info(f"Decoded file written to: {os.path.abspath(f.name)}")
+                    self.logger.info(
+                        f"Decoded file written to: {os.path.abspath(f.name)}"
+                    )
                     shutil.move(
                         os.path.abspath(f.name),
                         os.path.join(self.dest_dir, output_filename),
@@ -88,7 +91,9 @@ class XMLHandler(FileSystemEventHandler):
                     "wb",
                 ) as f:
                     f.write(decoded_data)
-                    self.logger.info(f"[INFO] Decoded file written to: {os.path.abspath(f.name)}")
+                    self.logger.info(
+                        f"[INFO] Decoded file written to: {os.path.abspath(f.name)}"
+                    )
                     shutil.move(
                         os.path.abspath(f.name),
                         os.path.join(self.dest_dir, output_filename),
@@ -144,9 +149,11 @@ def start_service(src_dir: pathlib.Path, dest_dir: pathlib.Path):
 def config_logging():
     log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
     log_dir = pathlib.Path(os.getenv("LOG_DIR", "logs"))
-    log_level = getattr(logging, log_level_str, logging.INFO) # defaults to INFO if invalid
+    log_level = getattr(
+        logging, log_level_str, logging.INFO
+    )  # defaults to INFO if invalid
     os.makedirs(log_dir.as_posix(), exist_ok=True)
-  
+
     # Log Format
     log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     formatter = logging.Formatter(log_format)
@@ -159,7 +166,7 @@ def config_logging():
         when="midnight",
         interval=1,
         backupCount=7,
-        encoding="utf-8"
+        encoding="utf-8",
     )
     file_handler.setFormatter(formatter)
     # Stdout handler

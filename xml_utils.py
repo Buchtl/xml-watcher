@@ -1,8 +1,8 @@
-
 import base64
 import xml.etree.ElementTree as ET
 from typing import List
 from xml_models import Part
+
 
 def find_parts(file_path: str) -> List[Part]:
     root = ET.parse(file_path).getroot()
