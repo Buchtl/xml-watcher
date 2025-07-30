@@ -141,17 +141,21 @@ def start_service(src_dir: pathlib.Path, dest_dir: pathlib.Path):
     observer.join()
 
 
-def config_logging(logDir: pathlib.Path):
-    os.makedirs(logDir.as_posix(), exist_ok=True)
+def config_logging():
+    log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_dir = pathlib.Path(os.getenv("LOG_DIR", "logs"))
+    log_level = getattr(logging, log_level_str, logging.INFO) # defaults to INFO if invalid
+    os.makedirs(log_dir.as_posix(), exist_ok=True)
+  
     # Log Format
     log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     formatter = logging.Formatter(log_format)
     # Logger setup
     logger = logging.getLogger("xml_watcher")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(log_level)
     # File handler: one file per day, keep 7 days
     file_handler = TimedRotatingFileHandler(
-        filename=(logDir / "app.log").as_posix(),
+        filename=(log_dir / "app.log").as_posix(),
         when="midnight",
         interval=1,
         backupCount=7,
@@ -184,6 +188,6 @@ if __name__ == "__main__":
     src_dir = pathlib.Path(args.src)
     dst_dir = pathlib.Path(args.dest)
 
-    config_logging(src_dir / "logs")
+    config_logging()
 
     start_service(src_dir, dst_dir)

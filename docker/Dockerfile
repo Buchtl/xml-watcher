@@ -11,4 +11,10 @@ COPY xml_watcher.py \
 
 RUN pip install -r requirements.txt
 
+ENV LOG_DIR=/var/log/xml_watcher
+RUN mkdir -p $LOG_DIR && chmod 777 $LOG_DIR
+
+# Set non-root user
+USER nobody
+
 CMD ["python", "xml_watcher.py", "--src", "/input", "--dest", "/output"]
