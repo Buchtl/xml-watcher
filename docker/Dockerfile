@@ -5,6 +5,7 @@ WORKDIR /app
 COPY xml_watcher.py \
   xml_utils.py \
   xml_models.py \
+  logging_conf.py \
   requirements.txt \
   utils.py \
   /app/
