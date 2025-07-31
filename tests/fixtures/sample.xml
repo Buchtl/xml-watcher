@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Envelope>
+    <Header>
+        <Timestamp>2025-07-21T12:00:00Z</Timestamp>
+    </Header>
+    <Type>type_test</Type>
+    <Part id="1">
+      <Filename>this_is_a_test.txt</Filename>
+      <Type>text/plain</Type>
+      <Body>VGhpcyBpcyBhIHRlc3Qu</Body>
+    </Part>
+    <Part id="2">
+      <Filename>this_is_a_test_too.txt</Filename>
+      <Type>text/plain</Type>
+      <Body>VGhpcyBpcyBhIHRlc3QgdG9vLg==</Body>
+    </Part>
+</Envelope>
