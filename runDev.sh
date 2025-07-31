@@ -1,1 +1,1 @@
-python3 xml_watcher.py --src ./input/ --dest ./output/
+python3 -m src.xml_watcher --src ./input/ --dest ./output/

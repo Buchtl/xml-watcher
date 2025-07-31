@@ -6,10 +6,10 @@ import argparse
 import xml.etree.ElementTree as ET
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import utils
-import logging
-import logging_conf
 import pathlib
+import logging
+from src import utils
+from src import logging_conf
 
 
 TARGET_TYPE_VALUE = "type_test"  # Change this to your expected <type> content
