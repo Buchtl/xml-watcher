@@ -58,7 +58,7 @@ class XMLHandler(FileSystemEventHandler):
         tree = ET.parse(file_path)
         root = tree.getroot()
 
-        for part in root.find("Parts").findall("Part"):
+        for part in root.find("Part").findall("Part"):
             type = part.find("Type").text
             filename = part.find("Filename").text
             body = part.find("Body").text
